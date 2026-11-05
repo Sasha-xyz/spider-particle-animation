@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Particle Animation</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="spiderCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("spiderCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let width, height;
+
+    function resizeCanvas() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // Mouse position
+    const mouse = {
+        x: width / 2,
+        y: height / 2
+    };
+
+    // Spider position
+    const spider = {
+        x: mouse.x,
+        y: mouse.y
+    };
+
+    // Track mouse movement
+    window.addEventListener("pointermove", (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    // Create particles
+    const particles = [];
+
+    for (let i = 0; i < 400; i++) {
+        particles.push({
+            angle: Math.random() * Math.PI * 2,
+            distance: Math.random() * 100 + 10,
+            speed: Math.random() * 0.015 + 0.003,
+            size: Math.random() * 1.5 + 0.3,
+            x: mouse.x,
+            y: mouse.y,
+            opacity: Math.random() * 0.8 + 0.2
+        });
+    }
+
+    // Draw the tiny spider
+    function drawSpider(x, y) {
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        // Spider legs
+        ctx.strokeStyle = "#eeeeee";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+
+        for (let i = 0; i < 8; i++) {
+
+            let side = i < 4 ? -1 : 1;
+            let index = i % 4;
+
+            let angle = (index / 3) * 1.5 - 0.75;
+
+            let x1 = side * (8 + index * 2);
+            let y1 = Math.sin(angle) * 5;
+
+            let x2 = side * (20 + index * 3);
+            let y2 = (index - 1.5) * 10;
+
+            let x3 = side * (27 + index * 4);
+            let y3 = (index - 1.5) * 17;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+        }
+
+        // Spider body
+        ctx.fillStyle = "#ffffff";
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spider head
+        ctx.beginPath();
+        ctx.arc(0, -5, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = "#cccccc";
+        ctx.fillRect(-1.5, -7, 1, 1);
+        ctx.fillRect(1.5, -7, 1, 1);
+
+        ctx.restore();
+    }
+
+    // Draw particles
+    function drawParticles() {
+
+        particles.forEach(p => {
+
+            p.angle += p.speed;
+
+            // Particle target position
+            const targetX = spider.x +
+                Math.cos(p.angle) * p.distance;
+
+            const targetY = spider.y +
+                Math.sin(p.angle) * p.distance;
+
+            // Smooth particle movement
+            p.x += (targetX - p.x) * 0.08;
+            p.y += (targetY - p.y) * 0.08;
+
+            ctx.beginPath();
+
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+
+            ctx.fill();
+        });
+    }
+
+    // Background stars
+    const stars = [];
+
+    for (let i = 0; i < 500; i++) {
+        stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 1.2,
+            opacity: Math.random() * 0.5
+        });
+    }
+
+    function drawStars() {
+
+        stars.forEach(star => {
+
+            ctx.beginPath();
+
+            ctx.arc(
+                star.x,
+                star.y,
+                star.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle =
+                `rgba(255,255,255,${star.opacity})`;
+
+            ctx.fill();
+        });
+    }
+
+    // Animation loop
+    function animate() {
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw background stars
+        drawStars();
+
+        // Smoothly move spider towards mouse
+        spider.x += (mouse.x - spider.x) * 0.15;
+        spider.y += (mouse.y - spider.y) * 0.15;
+
+        // Draw particles and spider
+        drawParticles();
+        drawSpider(spider.x, spider.y);
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+</script>
+
+</body>
+</html>
